@@ -1,13 +1,37 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Eye, EyeOff, ArrowLeft } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
-  const [isRegister, setIsRegister] = useState(false);
+  const [phone, setPhone] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    // Temporary hardcoded login — will be replaced with Cloud auth
+    const cleanPhone = phone.replace(/\s/g, "");
+    if (cleanPhone === "+998999649695" && password === "Shoxrux@9695") {
+      localStorage.setItem("qarzdaftar_auth", "true");
+      navigate("/dashboard");
+    } else {
+      toast({
+        title: "Xatolik",
+        description: "Telefon raqam yoki parol noto'g'ri",
+        variant: "destructive",
+      });
+    }
+    setLoading(false);
+  };
 
   return (
     <div className="min-h-screen flex">
@@ -56,30 +80,14 @@ const Login = () => {
               <span className="font-display font-bold text-xl text-foreground">Qarzdaftar</span>
             </div>
             <h1 className="font-display text-2xl font-bold text-foreground mb-2">
-              {isRegister ? "Hisob yaratish" : "Hisobga kirish"}
+              Hisobga kirish
             </h1>
             <p className="text-muted-foreground">
-              {isRegister
-                ? "Bepul hisob yarating va boshlang"
-                : "Hisobingizga kiring va davom eting"}
+              Hisobingizga kiring va davom eting
             </p>
           </div>
 
-          <form className="space-y-5" onSubmit={(e) => e.preventDefault()}>
-            {isRegister && (
-              <div className="space-y-2">
-                <Label htmlFor="name" className="text-sm font-medium text-foreground">
-                  Ism
-                </Label>
-                <Input
-                  id="name"
-                  type="text"
-                  placeholder="Ismingizni kiriting"
-                  className="h-12 rounded-xl bg-muted/50 border-border focus:border-accent focus:ring-accent"
-                />
-              </div>
-            )}
-
+          <form className="space-y-5" onSubmit={handleLogin}>
             <div className="space-y-2">
               <Label htmlFor="phone" className="text-sm font-medium text-foreground">
                 Telefon raqam
@@ -88,6 +96,8 @@ const Login = () => {
                 id="phone"
                 type="tel"
                 placeholder="+998 90 123 45 67"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
                 className="h-12 rounded-xl bg-muted/50 border-border focus:border-accent focus:ring-accent"
               />
             </div>
@@ -101,6 +111,8 @@ const Login = () => {
                   id="password"
                   type={showPassword ? "text" : "password"}
                   placeholder="Parolingizni kiriting"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                   className="h-12 rounded-xl bg-muted/50 border-border focus:border-accent focus:ring-accent pr-12"
                 />
                 <button
@@ -113,21 +125,10 @@ const Login = () => {
               </div>
             </div>
 
-            <Button variant="hero" size="lg" className="w-full">
-              {isRegister ? "Ro'yxatdan o'tish" : "Kirish"}
+            <Button variant="hero" size="lg" className="w-full" disabled={loading}>
+              {loading ? "Kirish..." : "Kirish"}
             </Button>
           </form>
-
-          <div className="mt-6 text-center">
-            <button
-              onClick={() => setIsRegister(!isRegister)}
-              className="text-sm text-muted-foreground hover:text-accent transition-colors"
-            >
-              {isRegister
-                ? "Hisobingiz bormi? Kirish"
-                : "Hisobingiz yo'qmi? Ro'yxatdan o'ting"}
-            </button>
-          </div>
         </div>
       </div>
     </div>
