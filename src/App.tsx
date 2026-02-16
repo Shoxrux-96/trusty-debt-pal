@@ -13,6 +13,7 @@ import Reports from "./pages/Reports";
 import Payments from "./pages/Payments";
 import Tariffs from "./pages/Tariffs";
 import AdminLayout from "./components/AdminLayout";
+import { PaidDebtsProvider } from "./contexts/PaidDebtsContext";
 
 const queryClient = new QueryClient();
 
@@ -25,21 +26,22 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-          <Route path="/debtors" element={<ProtectedRoute><Debtors /></ProtectedRoute>} />
-          <Route path="/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
-          
-          <Route path="/payments" element={<ProtectedRoute><Payments /></ProtectedRoute>} />
-          <Route path="/tariffs" element={<ProtectedRoute><Tariffs /></ProtectedRoute>} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
+      <PaidDebtsProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+            <Route path="/debtors" element={<ProtectedRoute><Debtors /></ProtectedRoute>} />
+            <Route path="/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
+            <Route path="/payments" element={<ProtectedRoute><Payments /></ProtectedRoute>} />
+            <Route path="/tariffs" element={<ProtectedRoute><Tariffs /></ProtectedRoute>} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </PaidDebtsProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );

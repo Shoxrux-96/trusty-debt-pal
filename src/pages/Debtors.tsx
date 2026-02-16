@@ -8,9 +8,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import {
   Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious, PaginationEllipsis
 } from "@/components/ui/pagination";
-import { Search, Plus, Download, Eye, Pencil, Trash2 } from "lucide-react";
+import { Search, Plus, Download, Eye, Pencil, Trash2, Banknote, CreditCard } from "lucide-react";
 import * as XLSX from "xlsx";
 import DebtFormDialog, { type DebtFormData, type DebtItem } from "@/components/DebtFormDialog";
+import { usePaidDebts } from "@/contexts/PaidDebtsContext";
 
 interface Debtor {
   id: number;
@@ -49,11 +50,9 @@ function generateMockDebtors(count: number): Debtor[] {
     const month = String(1 + (i % 12)).padStart(2, "0");
     const day = String(1 + (i % 28)).padStart(2, "0");
     debtors.push({
-      id: i,
-      firstName: fn, lastName: ln,
+      id: i, firstName: fn, lastName: ln,
       phone: `+998 ${90 + (i % 8)}${i} ${100 + (i % 900)} ${10 + (i % 90)} ${10 + (i % 90)}`,
-      debtDate: `2025-${month}-${day}`,
-      totalDebt, items, paid: false,
+      debtDate: `2025-${month}-${day}`, totalDebt, items, paid: false,
     });
   }
   return debtors;
@@ -70,6 +69,8 @@ const Debtors = () => {
   const [formOpen, setFormOpen] = useState(false);
   const [editData, setEditData] = useState<DebtFormData | null>(null);
   const [nextId, setNextId] = useState(76);
+  const [paymentMethodDebtor, setPaymentMethodDebtor] = useState<Debtor | null>(null);
+  const { addPaidDebt } = usePaidDebts();
 
   const filtered = useMemo(
     () => debtors.filter((d) =>
@@ -81,8 +82,33 @@ const Debtors = () => {
   const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
   const paged = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
-  const togglePaid = (id: number, checked: boolean) => {
-    setDebtors((prev) => prev.map((d) => (d.id === id ? { ...d, paid: checked } : d)));
+  const togglePaid = (debtor: Debtor, checked: boolean) => {
+    if (checked) {
+      // Show payment method dialog
+      setPaymentMethodDebtor(debtor);
+    } else {
+      setDebtors((prev) => prev.map((d) => (d.id === debtor.id ? { ...d, paid: false } : d)));
+    }
+  };
+
+  const confirmPayment = (method: "Naqd" | "Karta") => {
+    if (!paymentMethodDebtor) return;
+    const debtor = paymentMethodDebtor;
+    // Add to paid debts (Payments page)
+    addPaidDebt({
+      id: debtor.id,
+      firstName: debtor.firstName,
+      lastName: debtor.lastName,
+      phone: debtor.phone,
+      debtDate: debtor.debtDate,
+      paidDate: new Date().toISOString().split("T")[0],
+      totalDebt: debtor.totalDebt,
+      items: debtor.items,
+      method,
+    });
+    // Remove from debtors
+    setDebtors((prev) => prev.filter((d) => d.id !== debtor.id));
+    setPaymentMethodDebtor(null);
   };
 
   const handleDelete = (id: number) => {
@@ -189,7 +215,7 @@ const Debtors = () => {
           </TableHeader>
           <TableBody>
             {paged.map((debtor, idx) => (
-              <TableRow key={debtor.id} className={debtor.paid ? "bg-emerald-50/50 dark:bg-emerald-950/20" : ""}>
+              <TableRow key={debtor.id}>
                 <TableCell className="text-muted-foreground text-xs">{(page - 1) * PAGE_SIZE + idx + 1}</TableCell>
                 <TableCell className="font-medium">{debtor.firstName} {debtor.lastName}</TableCell>
                 <TableCell className="text-sm text-muted-foreground">{debtor.phone}</TableCell>
@@ -207,15 +233,12 @@ const Debtors = () => {
                   </div>
                 </TableCell>
                 <TableCell className="text-center">
-                  <Checkbox checked={debtor.paid} onCheckedChange={(checked) => togglePaid(debtor.id, !!checked)} />
+                  <Checkbox checked={false} onCheckedChange={(checked) => togglePaid(debtor, !!checked)} />
                 </TableCell>
                 <TableCell>
                   <div className="flex items-center justify-center gap-1">
                     <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setViewDebtor(debtor)}><Eye size={15} /></Button>
                     <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(debtor)}><Pencil size={15} /></Button>
-                    {debtor.paid && (
-                      <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => setDeleteConfirm(debtor)}><Trash2 size={15} /></Button>
-                    )}
                   </div>
                 </TableCell>
               </TableRow>
@@ -227,7 +250,7 @@ const Debtors = () => {
       {/* Mobile Cards */}
       <div className="md:hidden space-y-3">
         {paged.map((debtor, idx) => (
-          <div key={debtor.id} className={`rounded-xl border bg-card p-4 space-y-3 ${debtor.paid ? "bg-emerald-50/50 dark:bg-emerald-950/20" : ""}`}>
+          <div key={debtor.id} className="rounded-xl border bg-card p-4 space-y-3">
             <div className="flex items-start justify-between">
               <div>
                 <p className="font-medium text-foreground">{debtor.firstName} {debtor.lastName}</p>
@@ -247,12 +270,9 @@ const Debtors = () => {
                 <span className="text-xs text-muted-foreground ml-1">so'm</span>
               </div>
               <div className="flex items-center gap-2">
-                <Checkbox checked={debtor.paid} onCheckedChange={(checked) => togglePaid(debtor.id, !!checked)} />
+                <Checkbox checked={false} onCheckedChange={(checked) => togglePaid(debtor, !!checked)} />
                 <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setViewDebtor(debtor)}><Eye size={15} /></Button>
                 <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(debtor)}><Pencil size={15} /></Button>
-                {debtor.paid && (
-                  <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => setDeleteConfirm(debtor)}><Trash2 size={15} /></Button>
-                )}
               </div>
             </div>
           </div>
@@ -282,6 +302,40 @@ const Debtors = () => {
         onSave={handleFormSave}
         title={editData ? "Tahrirlash" : "Yangi qarz qo'shish"}
       />
+
+      {/* Payment Method Dialog */}
+      <Dialog open={!!paymentMethodDebtor} onOpenChange={() => setPaymentMethodDebtor(null)}>
+        <DialogContent className="max-w-[95vw] sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle>To'lov usulini tanlang</DialogTitle>
+          </DialogHeader>
+          {paymentMethodDebtor && (
+            <div className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                <strong>{paymentMethodDebtor.firstName} {paymentMethodDebtor.lastName}</strong> — {formatSum(paymentMethodDebtor.totalDebt)} so'm
+              </p>
+              <div className="grid grid-cols-2 gap-3">
+                <Button
+                  variant="outline"
+                  className="h-20 flex-col gap-2 hover:border-emerald-500 hover:bg-emerald-50"
+                  onClick={() => confirmPayment("Naqd")}
+                >
+                  <Banknote size={24} className="text-emerald-600" />
+                  <span className="font-medium">Naqd</span>
+                </Button>
+                <Button
+                  variant="outline"
+                  className="h-20 flex-col gap-2 hover:border-blue-500 hover:bg-blue-50"
+                  onClick={() => confirmPayment("Karta")}
+                >
+                  <CreditCard size={24} className="text-blue-600" />
+                  <span className="font-medium">Karta</span>
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* View Dialog */}
       <Dialog open={!!viewDebtor} onOpenChange={() => setViewDebtor(null)}>
@@ -314,9 +368,7 @@ const Debtors = () => {
                   </Table>
                 </div>
               </div>
-              <Badge variant={viewDebtor.paid ? "default" : "destructive"}>
-                {viewDebtor.paid ? "To'langan" : "Qarz mavjud"}
-              </Badge>
+              <Badge variant="destructive">Qarz mavjud</Badge>
             </div>
           )}
         </DialogContent>

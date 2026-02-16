@@ -10,19 +10,9 @@ import {
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Search, Download, Eye, CheckCircle } from "lucide-react";
 import * as XLSX from "xlsx";
+import { usePaidDebts, type PaidDebtEntry } from "@/contexts/PaidDebtsContext";
 
-interface PaidDebt {
-  id: number;
-  firstName: string;
-  lastName: string;
-  phone: string;
-  debtDate: string;
-  paidDate: string;
-  totalDebt: number;
-  items: { name: string; qty: number; price: number }[];
-  method: string;
-}
-
+// Mock data generator for initial payments
 const names = [
   "Aziz", "Nilufar", "Sardor", "Madina", "Bobur", "Gulnora", "Jasur", "Dilnoza", "Sherzod", "Kamola",
   "Otabek", "Zulfiya", "Ulug'bek", "Barno", "Eldor", "Sabohat", "Nodir", "Feruza", "Rustam", "Mohira",
@@ -33,10 +23,10 @@ const lastNames = [
   "Umarov", "Abdullayeva", "Ismoilov", "Nurullayeva", "Hamidov", "Qodirova", "Salimov", "Tursunova", "Raxmatullayev", "Ahmedova",
 ];
 const itemNames = ["Un 50kg", "Shakar 25kg", "Guruch 10kg", "Yog' 5l", "Paracetamol", "Telefon", "Ko'ylak", "Sement", "Mol go'shti", "Kartoshka"];
-const methods = ["Naqd", "Karta", "Bank o'tkazma"];
+const methods: ("Naqd" | "Karta")[] = ["Naqd", "Karta"];
 
-function generateMockPayments(count: number): PaidDebt[] {
-  const payments: PaidDebt[] = [];
+function generateMockPayments(count: number): PaidDebtEntry[] {
+  const payments: PaidDebtEntry[] = [];
   for (let i = 1; i <= count; i++) {
     const fn = names[i % names.length];
     const ln = lastNames[i % lastNames.length];
@@ -52,7 +42,7 @@ function generateMockPayments(count: number): PaidDebt[] {
     const paidMonth = String(1 + ((i + 1) % 12)).padStart(2, "0");
     const paidDay = String(1 + ((i + 3) % 28)).padStart(2, "0");
     payments.push({
-      id: i,
+      id: 1000 + i,
       firstName: fn, lastName: ln,
       phone: `+998 ${90 + (i % 8)}${i} ${100 + (i % 900)} ${10 + (i % 90)} ${10 + (i % 90)}`,
       debtDate: `2025-${debtMonth}-${debtDay}`,
@@ -67,16 +57,20 @@ function generateMockPayments(count: number): PaidDebt[] {
 const PAGE_SIZE = 15;
 
 const Payments = () => {
-  const [payments] = useState<PaidDebt[]>(() => generateMockPayments(75));
+  const { paidDebts } = usePaidDebts();
+  const [mockPayments] = useState<PaidDebtEntry[]>(() => generateMockPayments(75));
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
-  const [viewPayment, setViewPayment] = useState<PaidDebt | null>(null);
+  const [viewPayment, setViewPayment] = useState<PaidDebtEntry | null>(null);
+
+  // Combine context paid debts (from Debtors) with mock data
+  const allPayments = useMemo(() => [...paidDebts, ...mockPayments], [paidDebts, mockPayments]);
 
   const filtered = useMemo(
-    () => payments.filter((p) =>
+    () => allPayments.filter((p) =>
       `${p.firstName} ${p.lastName}`.toLowerCase().includes(search.toLowerCase()) || p.phone.includes(search)
     ),
-    [payments, search]
+    [allPayments, search]
   );
 
   const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
@@ -152,14 +146,14 @@ const Payments = () => {
               <TableHead>Qarz sanasi</TableHead>
               <TableHead>To'langan sana</TableHead>
               <TableHead>Summa</TableHead>
-              <TableHead className="hidden lg:table-cell">Usul</TableHead>
+              <TableHead>Usul</TableHead>
               <TableHead className="w-20 text-center">Holat</TableHead>
               <TableHead className="w-16 text-center">Ko'rish</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {paged.map((p, idx) => (
-              <TableRow key={p.id}>
+              <TableRow key={`${p.id}-${idx}`}>
                 <TableCell className="text-muted-foreground text-xs">{(page - 1) * PAGE_SIZE + idx + 1}</TableCell>
                 <TableCell className="font-medium">{p.firstName} {p.lastName}</TableCell>
                 <TableCell className="text-sm text-muted-foreground hidden lg:table-cell">{p.phone}</TableCell>
@@ -169,8 +163,10 @@ const Payments = () => {
                   <span className="font-semibold">{formatSum(p.totalDebt)}</span>
                   <span className="text-xs text-muted-foreground ml-1">so'm</span>
                 </TableCell>
-                <TableCell className="hidden lg:table-cell">
-                  <Badge variant="secondary" className="text-xs">{p.method}</Badge>
+                <TableCell>
+                  <Badge variant={p.method === "Naqd" ? "secondary" : "outline"} className="text-xs">
+                    {p.method}
+                  </Badge>
                 </TableCell>
                 <TableCell className="text-center">
                   <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700">
@@ -188,8 +184,8 @@ const Payments = () => {
 
       {/* Mobile Cards */}
       <div className="md:hidden space-y-3">
-        {paged.map((p) => (
-          <div key={p.id} className="rounded-xl border bg-card p-4 space-y-3">
+        {paged.map((p, idx) => (
+          <div key={`${p.id}-${idx}`} className="rounded-xl border bg-card p-4 space-y-3">
             <div className="flex items-start justify-between">
               <div>
                 <p className="font-medium text-foreground">{p.firstName} {p.lastName}</p>
@@ -213,7 +209,7 @@ const Payments = () => {
                 <span className="text-xs text-muted-foreground ml-1">so'm</span>
               </div>
               <div className="flex items-center gap-2">
-                <Badge variant="secondary" className="text-xs">{p.method}</Badge>
+                <Badge variant={p.method === "Naqd" ? "secondary" : "outline"} className="text-xs">{p.method}</Badge>
                 <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setViewPayment(p)}><Eye size={15} /></Button>
               </div>
             </div>
@@ -247,7 +243,7 @@ const Payments = () => {
                 <div><span className="text-muted-foreground">Telefon:</span> {viewPayment.phone}</div>
                 <div><span className="text-muted-foreground">Qarz sanasi:</span> {viewPayment.debtDate}</div>
                 <div><span className="text-muted-foreground">To'langan:</span> {viewPayment.paidDate}</div>
-                <div><span className="text-muted-foreground">Usul:</span> {viewPayment.method}</div>
+                <div><span className="text-muted-foreground">Usul:</span> <Badge variant="secondary">{viewPayment.method}</Badge></div>
                 <div><span className="text-muted-foreground">Jami:</span> <strong>{formatSum(viewPayment.totalDebt)} so'm</strong></div>
               </div>
               <div>
