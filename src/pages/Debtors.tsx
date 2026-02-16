@@ -5,18 +5,12 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
 import {
   Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious, PaginationEllipsis
 } from "@/components/ui/pagination";
 import { Search, Plus, Download, Eye, Pencil, Trash2 } from "lucide-react";
 import * as XLSX from "xlsx";
-
-interface DebtItem {
-  name: string;
-  qty: number;
-  price: number;
-}
+import DebtFormDialog, { type DebtFormData, type DebtItem } from "@/components/DebtFormDialog";
 
 interface Debtor {
   id: number;
@@ -38,7 +32,6 @@ const lastNames = [
   "Karimov", "Tosheva", "Aliyev", "Rahimova", "Xasanov", "Saidova", "Mirzayev", "Ergasheva", "Nazarov", "Yusupova",
   "Umarov", "Abdullayeva", "Ismoilov", "Nurullayeva", "Hamidov", "Qodirova", "Salimov", "Tursunova", "Raxmatullayev", "Ahmedova",
 ];
-const businesses = ["Oziq-ovqat", "Apteka", "Elektronika", "Kiyim", "Qurilish", "Go'sht", "Sabzavot", "Texnika", "Mebel", "Avtoehtiyot"];
 const itemNames = ["Un 50kg", "Shakar 25kg", "Guruch 10kg", "Yog' 5l", "Paracetamol", "Telefon", "Ko'ylak", "Sement", "Mol go'shti", "Kartoshka"];
 
 function generateMockDebtors(count: number): Debtor[] {
@@ -57,13 +50,10 @@ function generateMockDebtors(count: number): Debtor[] {
     const day = String(1 + (i % 28)).padStart(2, "0");
     debtors.push({
       id: i,
-      firstName: fn,
-      lastName: ln,
+      firstName: fn, lastName: ln,
       phone: `+998 ${90 + (i % 8)}${i} ${100 + (i % 900)} ${10 + (i % 90)} ${10 + (i % 90)}`,
       debtDate: `2025-${month}-${day}`,
-      totalDebt,
-      items,
-      paid: false,
+      totalDebt, items, paid: false,
     });
   }
   return debtors;
@@ -76,16 +66,15 @@ const Debtors = () => {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [viewDebtor, setViewDebtor] = useState<Debtor | null>(null);
-  const [editDebtor, setEditDebtor] = useState<Debtor | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<Debtor | null>(null);
+  const [formOpen, setFormOpen] = useState(false);
+  const [editData, setEditData] = useState<DebtFormData | null>(null);
+  const [nextId, setNextId] = useState(76);
 
   const filtered = useMemo(
-    () =>
-      debtors.filter(
-        (d) =>
-          `${d.firstName} ${d.lastName}`.toLowerCase().includes(search.toLowerCase()) ||
-          d.phone.includes(search)
-      ),
+    () => debtors.filter((d) =>
+      `${d.firstName} ${d.lastName}`.toLowerCase().includes(search.toLowerCase()) || d.phone.includes(search)
+    ),
     [debtors, search]
   );
 
@@ -101,19 +90,28 @@ const Debtors = () => {
     setDeleteConfirm(null);
   };
 
-  const handleEditSave = () => {
-    if (!editDebtor) return;
-    setDebtors((prev) => prev.map((d) => (d.id === editDebtor.id ? editDebtor : d)));
-    setEditDebtor(null);
+  const handleFormSave = (data: DebtFormData) => {
+    const totalDebt = data.items.reduce((s, it) => s + it.qty * it.price, 0);
+    if (data.id) {
+      setDebtors((prev) => prev.map((d) => d.id === data.id ? { ...d, ...data, totalDebt } : d));
+    } else {
+      const newDebtor: Debtor = { ...data, id: nextId, totalDebt, paid: false };
+      setDebtors((prev) => [newDebtor, ...prev]);
+      setNextId((n) => n + 1);
+    }
+    setEditData(null);
+  };
+
+  const openNew = () => { setEditData(null); setFormOpen(true); };
+  const openEdit = (d: Debtor) => {
+    setEditData({ id: d.id, firstName: d.firstName, lastName: d.lastName, phone: d.phone, debtDate: d.debtDate, items: d.items });
+    setFormOpen(true);
   };
 
   const exportToExcel = () => {
     const data = filtered.map((d) => ({
-      "Ism": d.firstName,
-      "Familiya": d.lastName,
-      "Telefon": d.phone,
-      "Qarz sanasi": d.debtDate,
-      "Umumiy qarz": d.totalDebt,
+      "Ism": d.firstName, "Familiya": d.lastName, "Telefon": d.phone,
+      "Qarz sanasi": d.debtDate, "Umumiy qarz": d.totalDebt,
       "Olgan narsalar": d.items.map((it) => `${it.name} x${it.qty}`).join(", "),
       "Holati": d.paid ? "To'langan" : "Qarz",
     }));
@@ -131,17 +129,12 @@ const Debtors = () => {
     let start = Math.max(1, page - 2);
     let end = Math.min(totalPages, start + maxVisible - 1);
     if (end - start < maxVisible - 1) start = Math.max(1, end - maxVisible + 1);
-
     if (start > 1) {
       items.push(<PaginationItem key={1}><PaginationLink onClick={() => setPage(1)}>1</PaginationLink></PaginationItem>);
       if (start > 2) items.push(<PaginationItem key="e1"><PaginationEllipsis /></PaginationItem>);
     }
     for (let i = start; i <= end; i++) {
-      items.push(
-        <PaginationItem key={i}>
-          <PaginationLink isActive={i === page} onClick={() => setPage(i)}>{i}</PaginationLink>
-        </PaginationItem>
-      );
+      items.push(<PaginationItem key={i}><PaginationLink isActive={i === page} onClick={() => setPage(i)}>{i}</PaginationLink></PaginationItem>);
     }
     if (end < totalPages) {
       if (end < totalPages - 1) items.push(<PaginationItem key="e2"><PaginationEllipsis /></PaginationItem>);
@@ -160,9 +153,9 @@ const Debtors = () => {
         </div>
         <div className="flex gap-2">
           <Button variant="outline" className="gap-2" onClick={exportToExcel}>
-            <Download size={16} /> Excel
+            <Download size={16} /> <span className="hidden sm:inline">Excel</span>
           </Button>
-          <Button variant="hero" className="gap-2">
+          <Button variant="hero" className="gap-2" onClick={openNew}>
             <Plus size={16} /> Yangi qarz
           </Button>
         </div>
@@ -179,8 +172,8 @@ const Debtors = () => {
         />
       </div>
 
-      {/* Table */}
-      <div className="rounded-xl border bg-card overflow-hidden">
+      {/* Desktop Table */}
+      <div className="rounded-xl border bg-card overflow-hidden hidden md:block">
         <Table>
           <TableHeader>
             <TableRow className="bg-muted/50">
@@ -210,29 +203,18 @@ const Debtors = () => {
                     {debtor.items.slice(0, 2).map((it, i) => (
                       <Badge key={i} variant="secondary" className="text-xs">{it.name} x{it.qty}</Badge>
                     ))}
-                    {debtor.items.length > 2 && (
-                      <Badge variant="outline" className="text-xs">+{debtor.items.length - 2}</Badge>
-                    )}
+                    {debtor.items.length > 2 && <Badge variant="outline" className="text-xs">+{debtor.items.length - 2}</Badge>}
                   </div>
                 </TableCell>
                 <TableCell className="text-center">
-                  <Checkbox
-                    checked={debtor.paid}
-                    onCheckedChange={(checked) => togglePaid(debtor.id, !!checked)}
-                  />
+                  <Checkbox checked={debtor.paid} onCheckedChange={(checked) => togglePaid(debtor.id, !!checked)} />
                 </TableCell>
                 <TableCell>
                   <div className="flex items-center justify-center gap-1">
-                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setViewDebtor(debtor)}>
-                      <Eye size={15} />
-                    </Button>
-                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setEditDebtor({ ...debtor, items: [...debtor.items] })}>
-                      <Pencil size={15} />
-                    </Button>
+                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setViewDebtor(debtor)}><Eye size={15} /></Button>
+                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(debtor)}><Pencil size={15} /></Button>
                     {debtor.paid && (
-                      <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => setDeleteConfirm(debtor)}>
-                        <Trash2 size={15} />
-                      </Button>
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => setDeleteConfirm(debtor)}><Trash2 size={15} /></Button>
                     )}
                   </div>
                 </TableCell>
@@ -240,6 +222,41 @@ const Debtors = () => {
             ))}
           </TableBody>
         </Table>
+      </div>
+
+      {/* Mobile Cards */}
+      <div className="md:hidden space-y-3">
+        {paged.map((debtor, idx) => (
+          <div key={debtor.id} className={`rounded-xl border bg-card p-4 space-y-3 ${debtor.paid ? "bg-emerald-50/50 dark:bg-emerald-950/20" : ""}`}>
+            <div className="flex items-start justify-between">
+              <div>
+                <p className="font-medium text-foreground">{debtor.firstName} {debtor.lastName}</p>
+                <p className="text-sm text-muted-foreground">{debtor.phone}</p>
+              </div>
+              <span className="text-xs text-muted-foreground">{debtor.debtDate}</span>
+            </div>
+            <div className="flex flex-wrap gap-1">
+              {debtor.items.slice(0, 3).map((it, i) => (
+                <Badge key={i} variant="secondary" className="text-xs">{it.name} x{it.qty}</Badge>
+              ))}
+              {debtor.items.length > 3 && <Badge variant="outline" className="text-xs">+{debtor.items.length - 3}</Badge>}
+            </div>
+            <div className="flex items-center justify-between">
+              <div>
+                <span className="font-semibold text-foreground">{formatSum(debtor.totalDebt)}</span>
+                <span className="text-xs text-muted-foreground ml-1">so'm</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Checkbox checked={debtor.paid} onCheckedChange={(checked) => togglePaid(debtor.id, !!checked)} />
+                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setViewDebtor(debtor)}><Eye size={15} /></Button>
+                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(debtor)}><Pencil size={15} /></Button>
+                {debtor.paid && (
+                  <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => setDeleteConfirm(debtor)}><Trash2 size={15} /></Button>
+                )}
+              </div>
+            </div>
+          </div>
+        ))}
       </div>
 
       {/* Pagination */}
@@ -257,15 +274,22 @@ const Debtors = () => {
         </Pagination>
       )}
 
+      {/* Add/Edit Dialog */}
+      <DebtFormDialog
+        open={formOpen}
+        onOpenChange={setFormOpen}
+        initialData={editData}
+        onSave={handleFormSave}
+        title={editData ? "Tahrirlash" : "Yangi qarz qo'shish"}
+      />
+
       {/* View Dialog */}
       <Dialog open={!!viewDebtor} onOpenChange={() => setViewDebtor(null)}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Qarz ma'lumotlari</DialogTitle>
-          </DialogHeader>
+        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+          <DialogHeader><DialogTitle>Qarz ma'lumotlari</DialogTitle></DialogHeader>
           {viewDebtor && (
             <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-3 text-sm">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
                 <div><span className="text-muted-foreground">Ism:</span> <strong>{viewDebtor.firstName} {viewDebtor.lastName}</strong></div>
                 <div><span className="text-muted-foreground">Telefon:</span> {viewDebtor.phone}</div>
                 <div><span className="text-muted-foreground">Sana:</span> {viewDebtor.debtDate}</div>
@@ -298,49 +322,14 @@ const Debtors = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Edit Dialog */}
-      <Dialog open={!!editDebtor} onOpenChange={() => setEditDebtor(null)}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Tahrirlash</DialogTitle>
-          </DialogHeader>
-          {editDebtor && (
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-3">
-                <div><Label>Ism</Label><Input value={editDebtor.firstName} onChange={(e) => setEditDebtor({ ...editDebtor, firstName: e.target.value })} /></div>
-                <div><Label>Familiya</Label><Input value={editDebtor.lastName} onChange={(e) => setEditDebtor({ ...editDebtor, lastName: e.target.value })} /></div>
-              </div>
-              <div><Label>Telefon</Label><Input value={editDebtor.phone} onChange={(e) => setEditDebtor({ ...editDebtor, phone: e.target.value })} /></div>
-              <div><Label>Qarz sanasi</Label><Input type="date" value={editDebtor.debtDate} onChange={(e) => setEditDebtor({ ...editDebtor, debtDate: e.target.value })} /></div>
-              <div>
-                <Label>Olgan narsalar</Label>
-                {editDebtor.items.map((it, i) => (
-                  <div key={i} className="flex gap-2 mt-2">
-                    <Input className="flex-1" value={it.name} onChange={(e) => { const items = [...editDebtor.items]; items[i] = { ...items[i], name: e.target.value }; setEditDebtor({ ...editDebtor, items }); }} placeholder="Nomi" />
-                    <Input className="w-16" type="number" value={it.qty} onChange={(e) => { const items = [...editDebtor.items]; items[i] = { ...items[i], qty: +e.target.value }; setEditDebtor({ ...editDebtor, items }); }} />
-                    <Input className="w-28" type="number" value={it.price} onChange={(e) => { const items = [...editDebtor.items]; items[i] = { ...items[i], price: +e.target.value }; setEditDebtor({ ...editDebtor, items }); }} />
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setEditDebtor(null)}>Bekor qilish</Button>
-            <Button onClick={handleEditSave}>Saqlash</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
       {/* Delete Confirm */}
       <Dialog open={!!deleteConfirm} onOpenChange={() => setDeleteConfirm(null)}>
         <DialogContent className="max-w-sm">
-          <DialogHeader>
-            <DialogTitle>O'chirishni tasdiqlang</DialogTitle>
-          </DialogHeader>
+          <DialogHeader><DialogTitle>O'chirishni tasdiqlang</DialogTitle></DialogHeader>
           <p className="text-sm text-muted-foreground">
             <strong>{deleteConfirm?.firstName} {deleteConfirm?.lastName}</strong> ni jadvaldan o'chirmoqchimisiz?
           </p>
-          <DialogFooter>
+          <DialogFooter className="gap-2 sm:gap-0">
             <Button variant="outline" onClick={() => setDeleteConfirm(null)}>Yo'q</Button>
             <Button variant="destructive" onClick={() => deleteConfirm && handleDelete(deleteConfirm.id)}>Ha, o'chirish</Button>
           </DialogFooter>
