@@ -1,23 +1,65 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { TrendingUp, Users, CreditCard, AlertTriangle, Eye, EyeOff, Pencil, Check, X } from "lucide-react";
+import { TrendingUp, Users, CreditCard, AlertTriangle, Eye, EyeOff, Pencil, Check, X, ArrowUpRight, ArrowDownRight, Wallet, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, CartesianGrid, XAxis, YAxis, ResponsiveContainer, Tooltip, Legend } from "recharts";
+
+type Period = "kunlik" | "haftalik" | "oylik";
+
+const dailyData = [
+  { name: "Dush", jami: 4200, undirilgan: 2800, undirilmagan: 1400 },
+  { name: "Sesh", jami: 3800, undirilgan: 2400, undirilmagan: 1400 },
+  { name: "Chor", jami: 5100, undirilgan: 3200, undirilmagan: 1900 },
+  { name: "Pay", jami: 4600, undirilgan: 3100, undirilmagan: 1500 },
+  { name: "Jum", jami: 3900, undirilgan: 2700, undirilmagan: 1200 },
+  { name: "Shan", jami: 2200, undirilgan: 1500, undirilmagan: 700 },
+  { name: "Yak", jami: 1800, undirilgan: 1200, undirilmagan: 600 },
+];
+
+const weeklyData = [
+  { name: "1-hafta", jami: 22000, undirilgan: 14500, undirilmagan: 7500 },
+  { name: "2-hafta", jami: 25000, undirilgan: 17000, undirilmagan: 8000 },
+  { name: "3-hafta", jami: 21000, undirilgan: 13500, undirilmagan: 7500 },
+  { name: "4-hafta", jami: 27000, undirilgan: 19000, undirilmagan: 8000 },
+];
+
+const monthlyData = [
+  { name: "Yan", jami: 85000, undirilgan: 58000, undirilmagan: 27000 },
+  { name: "Fev", jami: 92000, undirilgan: 65000, undirilmagan: 27000 },
+  { name: "Mar", jami: 78000, undirilgan: 52000, undirilmagan: 26000 },
+  { name: "Apr", jami: 95000, undirilgan: 68000, undirilmagan: 27000 },
+  { name: "May", jami: 88000, undirilgan: 60000, undirilmagan: 28000 },
+  { name: "Iyn", jami: 102000, undirilgan: 72000, undirilmagan: 30000 },
+];
+
+const pieData = [
+  { name: "Undirilgan", value: 65, color: "hsl(152, 60%, 45%)" },
+  { name: "Undirilmagan", value: 23, color: "hsl(0, 72%, 51%)" },
+  { name: "Muddati o'tgan", value: 12, color: "hsl(40, 85%, 55%)" },
+];
+
+const dataByPeriod: Record<Period, typeof dailyData> = {
+  kunlik: dailyData,
+  haftalik: weeklyData,
+  oylik: monthlyData,
+};
 
 const stats = [
-  { title: "Jami qarz", value: "45,200,000 so'm", change: "+12%", icon: CreditCard, color: "text-accent" },
-  { title: "Qarz oluvchilar", value: "128", change: "+5", icon: Users, color: "text-blue-500" },
-  { title: "Bugungi to'lovlar", value: "3,500,000 so'm", change: "+8%", icon: TrendingUp, color: "text-emerald-500" },
-  { title: "Muddati o'tgan", value: "23", change: "-3", icon: AlertTriangle, color: "text-destructive" },
+  { title: "Jami qarz", value: "45,200,000", suffix: "so'm", change: "+12%", up: true, icon: CreditCard, color: "text-accent" },
+  { title: "Qarz oluvchilar", value: "128", suffix: "ta", change: "+5", up: true, icon: Users, color: "text-blue-500" },
+  { title: "Bugungi to'lovlar", value: "3,500,000", suffix: "so'm", change: "+8%", up: true, icon: TrendingUp, color: "text-emerald-500" },
+  { title: "Muddati o'tgan", value: "23", suffix: "ta", change: "-3", up: false, icon: AlertTriangle, color: "text-destructive" },
+  { title: "Undirilgan", value: "28,800,000", suffix: "so'm", change: "+15%", up: true, icon: Wallet, color: "text-emerald-600" },
+  { title: "Undirilishi kerak", value: "16,400,000", suffix: "so'm", change: "-2%", up: false, icon: Clock, color: "text-amber-500" },
 ];
 
-const recentDebtors = [
-  { name: "Aziz Karimov", phone: "+998 90 111 22 33", amount: "2,500,000", status: "active" },
-  { name: "Nilufar Tosheva", phone: "+998 91 444 55 66", amount: "1,800,000", status: "overdue" },
-  { name: "Sardor Aliyev", phone: "+998 93 777 88 99", amount: "3,200,000", status: "active" },
-  { name: "Madina Rahimova", phone: "+998 94 222 33 44", amount: "950,000", status: "paid" },
-  { name: "Bobur Xasanov", phone: "+998 95 666 77 88", amount: "4,100,000", status: "overdue" },
-];
+const chartConfig = {
+  jami: { label: "Jami qarz", color: "hsl(213, 55%, 20%)" },
+  undirilgan: { label: "Undirilgan", color: "hsl(152, 60%, 45%)" },
+  undirilmagan: { label: "Undirilmagan", color: "hsl(0, 72%, 51%)" },
+};
 
 interface UserData {
   id: number;
@@ -37,6 +79,7 @@ const initialUsers: UserData[] = [
 ];
 
 const Dashboard = () => {
+  const [period, setPeriod] = useState<Period>("oylik");
   const [users, setUsers] = useState<UserData[]>(initialUsers);
   const [visiblePasswords, setVisiblePasswords] = useState<Record<number, boolean>>({});
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -63,30 +106,123 @@ const Dashboard = () => {
     setEditingId(null);
   };
 
+  const data = dataByPeriod[period];
+
+  const periodButtons: { label: string; value: Period }[] = [
+    { label: "Kunlik", value: "kunlik" },
+    { label: "Haftalik", value: "haftalik" },
+    { label: "Oylik", value: "oylik" },
+  ];
+
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <div>
         <h1 className="font-display text-2xl font-bold text-foreground">Dashboard</h1>
         <p className="text-muted-foreground text-sm mt-1">Platformaning umumiy ko'rinishi</p>
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
         {stats.map((stat) => (
           <Card key={stat.title} className="shadow-card">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <stat.icon className={`${stat.color}`} size={22} />
-                <span className="text-xs font-medium text-muted-foreground bg-muted px-2 py-1 rounded-md">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between mb-2">
+                <stat.icon className={stat.color} size={18} />
+                <span className={`flex items-center gap-0.5 text-xs font-medium ${stat.up ? "text-emerald-600" : "text-destructive"}`}>
+                  {stat.up ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}
                   {stat.change}
                 </span>
               </div>
-              <div className="font-display text-xl font-bold text-foreground">{stat.value}</div>
-              <div className="text-sm text-muted-foreground mt-1">{stat.title}</div>
+              <div className="font-display text-lg sm:text-xl font-bold text-foreground leading-tight">{stat.value}</div>
+              <div className="text-[11px] text-muted-foreground mt-0.5">{stat.title}</div>
             </CardContent>
           </Card>
         ))}
       </div>
+
+      {/* Period filter */}
+      <div className="flex gap-1 bg-muted p-1 rounded-lg w-fit">
+        {periodButtons.map((btn) => (
+          <button
+            key={btn.value}
+            onClick={() => setPeriod(btn.value)}
+            className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
+              period === btn.value
+                ? "bg-card text-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            {btn.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Charts row */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        {/* Bar chart */}
+        <Card className="shadow-card lg:col-span-2">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">Qarz va to'lovlar dinamikasi</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ChartContainer config={chartConfig} className="h-[220px] sm:h-[280px] w-full">
+              <BarChart data={data} margin={{ top: 5, right: 5, left: -15, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" className="stroke-border/30" />
+                <XAxis dataKey="name" tick={{ fontSize: 11 }} className="fill-muted-foreground" />
+                <YAxis tick={{ fontSize: 11 }} className="fill-muted-foreground" />
+                <ChartTooltip content={<ChartTooltipContent />} />
+                <Bar dataKey="jami" fill="var(--color-jami)" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="undirilgan" fill="var(--color-undirilgan)" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="undirilmagan" fill="var(--color-undirilmagan)" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ChartContainer>
+          </CardContent>
+        </Card>
+
+        {/* Pie chart */}
+        <Card className="shadow-card">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">Qarz taqsimoti</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="h-[220px] sm:h-[280px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie data={pieData} cx="50%" cy="45%" innerRadius={50} outerRadius={80} dataKey="value" paddingAngle={3}>
+                    {pieData.map((entry, i) => (
+                      <Cell key={i} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip formatter={(val: number) => `${val}%`} />
+                  <Legend
+                    verticalAlign="bottom"
+                    formatter={(value: string) => <span className="text-xs text-muted-foreground">{value}</span>}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Line chart */}
+      <Card className="shadow-card">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base">Undirilgan va undirilmagan to'lovlar trendi</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ChartContainer config={chartConfig} className="h-[200px] sm:h-[260px] w-full">
+            <LineChart data={data} margin={{ top: 5, right: 5, left: -15, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" className="stroke-border/30" />
+              <XAxis dataKey="name" tick={{ fontSize: 11 }} className="fill-muted-foreground" />
+              <YAxis tick={{ fontSize: 11 }} className="fill-muted-foreground" />
+              <ChartTooltip content={<ChartTooltipContent />} />
+              <Line type="monotone" dataKey="undirilgan" stroke="var(--color-undirilgan)" strokeWidth={2} dot={{ r: 3 }} />
+              <Line type="monotone" dataKey="undirilmagan" stroke="var(--color-undirilmagan)" strokeWidth={2} dot={{ r: 3 }} />
+            </LineChart>
+          </ChartContainer>
+        </CardContent>
+      </Card>
 
       {/* Users table */}
       <Card className="shadow-card">
@@ -180,49 +316,6 @@ const Dashboard = () => {
                           <Pencil size={15} />
                         </Button>
                       )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Recent debtors */}
-      <Card className="shadow-card">
-        <CardHeader>
-          <CardTitle className="text-lg">So'nggi qarz oluvchilar</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-border">
-                  <th className="text-left py-3 px-2 text-muted-foreground font-medium">Ism</th>
-                  <th className="text-left py-3 px-2 text-muted-foreground font-medium hidden sm:table-cell">Telefon</th>
-                  <th className="text-right py-3 px-2 text-muted-foreground font-medium">Qarz</th>
-                  <th className="text-center py-3 px-2 text-muted-foreground font-medium">Holat</th>
-                </tr>
-              </thead>
-              <tbody>
-                {recentDebtors.map((d) => (
-                  <tr key={d.name} className="border-b border-border/50 hover:bg-muted/30 transition-colors">
-                    <td className="py-3 px-2 font-medium text-foreground">{d.name}</td>
-                    <td className="py-3 px-2 text-muted-foreground hidden sm:table-cell">{d.phone}</td>
-                    <td className="py-3 px-2 text-right text-foreground">{d.amount}</td>
-                    <td className="py-3 px-2 text-center">
-                      <span
-                        className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${
-                          d.status === "active"
-                            ? "bg-blue-100 text-blue-700"
-                            : d.status === "overdue"
-                            ? "bg-red-100 text-red-700"
-                            : "bg-emerald-100 text-emerald-700"
-                        }`}
-                      >
-                        {d.status === "active" ? "Faol" : d.status === "overdue" ? "Muddati o'tgan" : "To'langan"}
-                      </span>
                     </td>
                   </tr>
                 ))}
