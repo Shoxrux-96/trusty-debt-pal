@@ -18,7 +18,6 @@ const navItems = [
   { path: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { path: "/debtors", label: "Qarz oluvchilar", icon: FileText },
   { path: "/reports", label: "Hisobotlar", icon: BarChart3 },
-  { path: "/users", label: "Foydalanuvchilar", icon: Users },
   { path: "/payments", label: "To'lovlar", icon: CreditCard },
   { path: "/tariffs", label: "Tarif rejalar", icon: Tag },
 ];
