@@ -9,7 +9,7 @@ import NotFound from "./pages/NotFound";
 import Dashboard from "./pages/Dashboard";
 import Debtors from "./pages/Debtors";
 import Reports from "./pages/Reports";
-import UsersPage from "./pages/UsersPage";
+
 import Payments from "./pages/Payments";
 import Tariffs from "./pages/Tariffs";
 import AdminLayout from "./components/AdminLayout";
@@ -34,7 +34,7 @@ const App = () => (
           <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
           <Route path="/debtors" element={<ProtectedRoute><Debtors /></ProtectedRoute>} />
           <Route path="/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
-          <Route path="/users" element={<ProtectedRoute><UsersPage /></ProtectedRoute>} />
+          
           <Route path="/payments" element={<ProtectedRoute><Payments /></ProtectedRoute>} />
           <Route path="/tariffs" element={<ProtectedRoute><Tariffs /></ProtectedRoute>} />
           <Route path="*" element={<NotFound />} />
