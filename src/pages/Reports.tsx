@@ -117,7 +117,7 @@ const Reports = () => {
       </div>
 
       {/* Summary cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-3">
         <Card className="shadow-card">
           <CardContent className="p-4">
             <Wallet className="text-primary mb-2" size={18} />
@@ -164,7 +164,7 @@ const Reports = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <ChartContainer config={chartConfig} className="h-[300px] sm:h-[350px] w-full">
+          <ChartContainer config={chartConfig} className="h-[220px] sm:h-[300px] lg:h-[350px] w-full">
             {chartType === "bar" ? (
               <BarChart data={data} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" className="stroke-border/30" />
@@ -202,7 +202,7 @@ const Reports = () => {
             <CardTitle className="text-base">Qarz taqsimoti</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="h-[250px] w-full">
+            <div className="h-[200px] sm:h-[250px] w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie data={pieData} cx="50%" cy="50%" innerRadius={55} outerRadius={90} dataKey="value" paddingAngle={3}>
