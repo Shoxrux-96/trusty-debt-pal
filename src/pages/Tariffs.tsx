@@ -117,9 +117,9 @@ const Tariffs = () => {
       </div>
 
       {/* Current Plan + Payment ID */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
         {/* Plan Info */}
-        <Card className="shadow-card lg:col-span-2">
+        <Card className="shadow-card md:col-span-2 lg:col-span-2">
           <CardContent className="p-6">
             <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
               <div>

@@ -238,7 +238,7 @@ const Payments = () => {
 
       {/* View Dialog */}
       <Dialog open={!!viewPayment} onOpenChange={() => setViewPayment(null)}>
-        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-[95vw] sm:max-w-md max-h-[90vh] overflow-y-auto">
           <DialogHeader><DialogTitle>To'lov ma'lumotlari</DialogTitle></DialogHeader>
           {viewPayment && (
             <div className="space-y-4">
