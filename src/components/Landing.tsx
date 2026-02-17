@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Shield, BarChart3, Bell, Users, Clock, Smartphone } from "lucide-react";
 import heroImage from "@/assets/hero-image.png";
+import qdIcon from "@/assets/qd_icon.png";
 
 const HeroSection = () => (
   <section className="relative gradient-hero overflow-hidden pt-32 pb-20 lg:pt-40 lg:pb-32">
@@ -203,9 +204,7 @@ const Footer = () => (
       <div className="grid md:grid-cols-3 gap-10">
         <div>
           <div className="flex items-center gap-2 mb-4">
-            <div className="w-9 h-9 rounded-lg gradient-accent flex items-center justify-center">
-              <span className="text-accent-foreground font-display font-bold text-lg">Q</span>
-            </div>
+            <img src={qdIcon} alt="Qarzdaftar logo" className="w-9 h-9 rounded-lg object-contain" />
             <span className="font-display font-bold text-xl text-primary-foreground">Qarzdaftar</span>
           </div>
           <p className="text-primary-foreground/50 text-sm leading-relaxed">
