@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
+import qdIcon from "@/assets/qd_icon.png";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -11,9 +12,7 @@ const Navbar = () => {
       <div className="container mx-auto px-4 lg:px-8">
         <div className="flex items-center justify-between h-16 lg:h-20">
           <Link to="/" className="flex items-center gap-2">
-            <div className="w-9 h-9 rounded-lg gradient-accent flex items-center justify-center">
-              <span className="text-accent-foreground font-display font-bold text-lg">Q</span>
-            </div>
+            <img src={qdIcon} alt="Qarzdaftar logo" className="w-9 h-9 rounded-lg object-contain" />
             <span className="font-display font-bold text-xl text-foreground">Qarzdaftar</span>
           </Link>
 

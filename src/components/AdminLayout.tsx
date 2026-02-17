@@ -13,6 +13,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import qdIcon from "@/assets/qd_icon.png";
 
 const navItems = [
   { path: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -52,9 +53,7 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
       >
         <div className="p-6 flex items-center justify-between">
           <Link to="/dashboard" className="flex items-center gap-2">
-            <div className="w-9 h-9 rounded-lg gradient-accent flex items-center justify-center">
-              <span className="text-accent-foreground font-display font-bold text-lg">Q</span>
-            </div>
+            <img src={qdIcon} alt="Qarzdaftar logo" className="w-9 h-9 rounded-lg object-contain" />
             <span className="font-display font-bold text-xl text-primary-foreground">Qarzdaftar</span>
           </Link>
           <button className="lg:hidden text-primary-foreground/60" onClick={() => setSidebarOpen(false)}>
