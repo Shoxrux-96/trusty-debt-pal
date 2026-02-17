@@ -198,6 +198,68 @@ const PricingSection = () => (
   </section>
 );
 
+const ContactSection = () => (
+  <section id="contact" className="py-20 lg:py-28 bg-background">
+    <div className="container mx-auto px-4 lg:px-8">
+      <div className="text-center mb-16">
+        <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4">
+          Biz bilan <span className="text-accent">bog'laning</span>
+        </h2>
+        <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+          Savollaringiz bormi? Biz bilan bog'laning — yordam berishdan mamnunmiz
+        </p>
+      </div>
+      <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+        <div className="space-y-6">
+          <div className="flex items-start gap-4 p-5 rounded-2xl gradient-card border border-border/50">
+            <div className="w-12 h-12 rounded-xl gradient-accent flex items-center justify-center flex-shrink-0">
+              <Smartphone size={22} className="text-accent-foreground" />
+            </div>
+            <div>
+              <h4 className="font-display font-bold text-foreground mb-1">Telefon</h4>
+              <a href="tel:+998999649695" className="text-muted-foreground hover:text-accent transition-colors">
+                +998 99 964 96 95
+              </a>
+            </div>
+          </div>
+          <div className="flex items-start gap-4 p-5 rounded-2xl gradient-card border border-border/50">
+            <div className="w-12 h-12 rounded-xl gradient-accent flex items-center justify-center flex-shrink-0">
+              <Bell size={22} className="text-accent-foreground" />
+            </div>
+            <div>
+              <h4 className="font-display font-bold text-foreground mb-1">Email</h4>
+              <a href="mailto:groupwebtexno@gmail.com" className="text-muted-foreground hover:text-accent transition-colors">
+                groupwebtexno@gmail.com
+              </a>
+            </div>
+          </div>
+          <div className="flex items-start gap-4 p-5 rounded-2xl gradient-card border border-border/50">
+            <div className="w-12 h-12 rounded-xl gradient-accent flex items-center justify-center flex-shrink-0">
+              <Shield size={22} className="text-accent-foreground" />
+            </div>
+            <div>
+              <h4 className="font-display font-bold text-foreground mb-1">Manzil</h4>
+              <p className="text-muted-foreground">O'zbekiston, Xorazm viloyati</p>
+            </div>
+          </div>
+        </div>
+        <div className="rounded-2xl overflow-hidden border border-border/50 shadow-card min-h-[300px]">
+          <iframe
+            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2266.8324690903637!2d60.28872075684395!3d41.654878640813635!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x41de49003887a0a7%3A0xc84af4a76a6708f4!2sIT%20Park%20Shovot!5e1!3m2!1suz!2s!4v1771313639271!5m2!1suz!2s"
+            width="100%"
+            height="100%"
+            style={{ border: 0, minHeight: "300px" }}
+            allowFullScreen
+            loading="lazy"
+            referrerPolicy="no-referrer-when-downgrade"
+            title="Qarzdaftar joylashuvi"
+          />
+        </div>
+      </div>
+    </div>
+  </section>
+);
+
 const Footer = () => (
   <footer id="about" className="gradient-hero py-16">
     <div className="container mx-auto px-4 lg:px-8">
@@ -222,9 +284,9 @@ const Footer = () => (
         <div>
           <h4 className="font-display font-bold text-primary-foreground mb-4">Aloqa</h4>
           <ul className="space-y-2">
-            <li className="text-primary-foreground/50 text-sm">info@qarzdaftar.uz</li>
-            <li className="text-primary-foreground/50 text-sm">+998 90 123 45 67</li>
-            <li className="text-primary-foreground/50 text-sm">Toshkent, O'zbekiston</li>
+            <li><a href="mailto:groupwebtexno@gmail.com" className="text-primary-foreground/50 hover:text-accent transition-colors text-sm">groupwebtexno@gmail.com</a></li>
+            <li><a href="tel:+998999649695" className="text-primary-foreground/50 hover:text-accent transition-colors text-sm">+998 99 964 96 95</a></li>
+            <li className="text-primary-foreground/50 text-sm">Xorazm, O'zbekiston</li>
           </ul>
         </div>
       </div>
@@ -240,6 +302,7 @@ const Landing = () => (
     <HeroSection />
     <FeaturesSection />
     <PricingSection />
+    <ContactSection />
     <Footer />
   </>
 );
