@@ -24,6 +24,9 @@ const Navbar = () => {
             <a href="#pricing" className="text-muted-foreground hover:text-foreground transition-colors text-sm font-medium">
               Tariflar
             </a>
+            <a href="#contact" className="text-muted-foreground hover:text-foreground transition-colors text-sm font-medium">
+              Aloqa
+            </a>
             <a href="#about" className="text-muted-foreground hover:text-foreground transition-colors text-sm font-medium">
               Biz haqimizda
             </a>
@@ -56,6 +59,9 @@ const Navbar = () => {
               </a>
               <a href="#pricing" className="text-muted-foreground hover:text-foreground transition-colors text-sm font-medium" onClick={() => setIsOpen(false)}>
                 Tariflar
+              </a>
+              <a href="#contact" className="text-muted-foreground hover:text-foreground transition-colors text-sm font-medium" onClick={() => setIsOpen(false)}>
+                Aloqa
               </a>
               <a href="#about" className="text-muted-foreground hover:text-foreground transition-colors text-sm font-medium" onClick={() => setIsOpen(false)}>
                 Biz haqimizda
