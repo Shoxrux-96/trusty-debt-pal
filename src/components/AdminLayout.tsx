@@ -11,11 +11,15 @@ import {
   Menu,
   X,
   ChevronRight,
+  ShieldCheck,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import qdIcon from "@/assets/qd_icon.png";
 
-const navItems = [
+const ownerNavItems = [
+  { path: "/owner-dashboard", label: "Owner Dashboard", icon: ShieldCheck },
+];
+
+const biznesNavItems = [
   { path: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { path: "/debtors", label: "Qarz oluvchilar", icon: FileText },
   { path: "/reports", label: "Hisobotlar", icon: BarChart3 },
@@ -28,8 +32,16 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
+  const role = localStorage.getItem("qarzdaftar_role");
+  const userName = localStorage.getItem("qarzdaftar_name") || "Foydalanuvchi";
+  const isOwner = role === "owner";
+
+  const navItems = isOwner ? ownerNavItems : biznesNavItems;
+
   const handleLogout = () => {
     localStorage.removeItem("qarzdaftar_auth");
+    localStorage.removeItem("qarzdaftar_role");
+    localStorage.removeItem("qarzdaftar_name");
     navigate("/login");
   };
 
@@ -52,7 +64,7 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
         }`}
       >
         <div className="p-6 flex items-center justify-between">
-          <Link to="/dashboard" className="flex items-center gap-2">
+          <Link to={isOwner ? "/owner-dashboard" : "/dashboard"} className="flex items-center gap-2">
             <img src={qdIcon} alt="Qarzdaftar logo" className="w-9 h-9 rounded-lg object-contain" />
             <span className="font-display font-bold text-xl text-primary-foreground">Qarzdaftar</span>
           </Link>
@@ -61,7 +73,17 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
           </button>
         </div>
 
-        <nav className="flex-1 px-3 py-4 space-y-1">
+        {/* Role badge */}
+        <div className="px-4 pb-3">
+          <div className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium ${
+            isOwner ? "bg-accent/20 text-accent" : "bg-primary-foreground/10 text-primary-foreground/70"
+          }`}>
+            {isOwner ? <ShieldCheck size={14} /> : <Users size={14} />}
+            {isOwner ? "Owner" : "Biznes egasi"}
+          </div>
+        </div>
+
+        <nav className="flex-1 px-3 py-2 space-y-1">
           {navItems.map((item) => {
             const isActive = location.pathname === item.path;
             return (
@@ -82,7 +104,12 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
           })}
         </nav>
 
-        <div className="p-4 border-t border-primary-foreground/10">
+        {/* User info + logout */}
+        <div className="p-4 border-t border-primary-foreground/10 space-y-1">
+          <div className="px-4 py-2">
+            <p className="text-xs text-primary-foreground/40">Kirgan foydalanuvchi</p>
+            <p className="text-sm font-medium text-primary-foreground/80 truncate">{userName}</p>
+          </div>
           <button
             onClick={handleLogout}
             className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-primary-foreground/60 hover:text-primary-foreground hover:bg-primary-foreground/5 transition-all w-full"
@@ -101,7 +128,7 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
             <Menu size={22} />
           </button>
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <span>Admin</span>
+            <span>{isOwner ? "Owner" : "Biznes egasi"}</span>
             <ChevronRight size={14} />
             <span className="text-foreground font-medium">{currentPage?.label || "Dashboard"}</span>
           </div>
