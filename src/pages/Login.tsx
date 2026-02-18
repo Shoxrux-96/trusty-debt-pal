@@ -14,15 +14,32 @@ const Login = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
+  // Users list (owner can manage from owner-dashboard)
+  const users = [
+    { phone: "+998999649695", password: "Shoxrux@9695", role: "owner", name: "Shoxrux Abdullayev" },
+    { phone: "+998901234567", password: "Jamshid@1234", role: "biznes", name: "Jamshid Toshmatov" },
+    { phone: "+998912345678", password: "Dilshod@2345", role: "biznes", name: "Dilshod Nazarov" },
+    { phone: "+998933456789", password: "Otabek@3456", role: "biznes", name: "Otabek Raximov" },
+  ];
+
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
-    // Temporary hardcoded login — will be replaced with Cloud auth
     const cleanPhone = phone.replace(/\s/g, "");
-    if (cleanPhone === "+998999649695" && password === "Shoxrux@9695") {
+    const user = users.find(
+      (u) => u.phone.replace(/\s/g, "") === cleanPhone && u.password === password
+    );
+
+    if (user) {
       localStorage.setItem("qarzdaftar_auth", "true");
-      navigate("/dashboard");
+      localStorage.setItem("qarzdaftar_role", user.role);
+      localStorage.setItem("qarzdaftar_name", user.name);
+      if (user.role === "owner") {
+        navigate("/owner-dashboard");
+      } else {
+        navigate("/dashboard");
+      }
     } else {
       toast({
         title: "Xatolik",
