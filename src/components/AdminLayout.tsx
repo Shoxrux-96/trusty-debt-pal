@@ -23,8 +23,8 @@ const ownerNavItems = [
 const biznesNavItems = [
   { path: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { path: "/debtors", label: "Qarz oluvchilar", icon: FileText },
-  { path: "/reports", label: "Hisobotlar", icon: BarChart3 },
   { path: "/payments", label: "To'lovlar", icon: CreditCard },
+  { path: "/reports", label: "Hisobotlar", icon: BarChart3 },
 ];
 
 const AdminLayout = ({ children }: { children: React.ReactNode }) => {
