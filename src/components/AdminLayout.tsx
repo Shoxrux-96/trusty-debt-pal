@@ -16,7 +16,8 @@ import {
 import qdIcon from "@/assets/qd_icon.png";
 
 const ownerNavItems = [
-  { path: "/owner-dashboard", label: "Owner Dashboard", icon: ShieldCheck },
+  { path: "/owner-dashboard", label: "Dashboard", icon: ShieldCheck },
+  { path: "/owner-users", label: "Foydalanuvchilar", icon: Users },
 ];
 
 const biznesNavItems = [
