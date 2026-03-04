@@ -14,21 +14,38 @@ const Login = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  // Users list (owner can manage from owner-dashboard)
-  const users = [
-    { phone: "+998999649695", password: "Shoxrux@9695", role: "owner", name: "Shoxrux Abdullayev" },
-    { phone: "+998901234567", password: "Jamshid@1234", role: "biznes", name: "Jamshid Toshmatov" },
-    { phone: "+998912345678", password: "Dilshod@2345", role: "biznes", name: "Dilshod Nazarov" },
-    { phone: "+998933456789", password: "Otabek@3456", role: "biznes", name: "Otabek Raximov" },
-  ];
+  // Load users from localStorage (managed by Owner dashboard)
+  const getUsers = () => {
+    const stored = localStorage.getItem("qarzdaftar_users");
+    const defaultUsers = [
+      { phone: "+998999649695", password: "Shoxrux@9695", role: "owner", name: "Shoxrux Abdullayev" },
+      { phone: "+998901234567", password: "Jamshid@1234", role: "biznes", name: "Jamshid Toshmatov" },
+      { phone: "+998912345678", password: "Dilshod@2345", role: "biznes", name: "Dilshod Nazarov" },
+      { phone: "+998933456789", password: "Otabek@3456", role: "biznes", name: "Otabek Raximov" },
+    ];
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored);
+        return parsed.map((u: any) => ({
+          phone: u.phone,
+          password: u.password,
+          role: u.role === "Owner" ? "owner" : "biznes",
+          name: u.name,
+          status: u.status,
+        }));
+      } catch { return defaultUsers; }
+    }
+    return defaultUsers;
+  };
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     const cleanPhone = phone.replace(/\s/g, "");
+    const users = getUsers();
     const user = users.find(
-      (u) => u.phone.replace(/\s/g, "") === cleanPhone && u.password === password
+      (u: any) => u.phone.replace(/\s/g, "") === cleanPhone && u.password === password && u.status !== "inactive"
     );
 
     if (user) {

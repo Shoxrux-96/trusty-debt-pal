@@ -25,12 +25,24 @@ interface UserData {
   tariff: string;
 }
 
-const initialUsers: UserData[] = [
+const defaultUsers: UserData[] = [
   { id: 1, name: "Shoxrux Abdullayev", phone: "+998999649695", password: "Shoxrux@9695", role: "Owner", status: "active", businesses: 3, tariff: "Premium" },
   { id: 2, name: "Jamshid Toshmatov", phone: "+998901234567", password: "Jamshid@1234", role: "Biznes egasi", status: "active", businesses: 1, tariff: "Standart" },
   { id: 3, name: "Dilshod Nazarov", phone: "+998912345678", password: "Dilshod@2345", role: "Biznes egasi", status: "active", businesses: 2, tariff: "Premium" },
   { id: 4, name: "Otabek Raximov", phone: "+998933456789", password: "Otabek@3456", role: "Biznes egasi", status: "inactive", businesses: 1, tariff: "Bepul" },
 ];
+
+const getStoredUsers = (): UserData[] => {
+  const stored = localStorage.getItem("qarzdaftar_users");
+  if (stored) {
+    try { return JSON.parse(stored); } catch { return defaultUsers; }
+  }
+  return defaultUsers;
+};
+
+const saveUsersToStorage = (users: UserData[]) => {
+  localStorage.setItem("qarzdaftar_users", JSON.stringify(users));
+};
 
 const statCards = [
   { title: "Jami foydalanuvchilar", value: "4", icon: Users, color: "text-blue-500", bg: "bg-blue-500/10" },
@@ -42,7 +54,15 @@ const statCards = [
 const emptyForm = { name: "", phone: "", password: "", tariff: "Bepul" };
 
 const OwnerDashboard = () => {
-  const [users, setUsers] = useState<UserData[]>(initialUsers);
+  const [users, setUsersState] = useState<UserData[]>(getStoredUsers);
+
+  const setUsers = (updater: UserData[] | ((prev: UserData[]) => UserData[])) => {
+    setUsersState((prev) => {
+      const next = typeof updater === "function" ? updater(prev) : updater;
+      saveUsersToStorage(next);
+      return next;
+    });
+  };
   const [visiblePasswords, setVisiblePasswords] = useState<Record<number, boolean>>({});
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editForm, setEditForm] = useState({ phone: "", password: "" });

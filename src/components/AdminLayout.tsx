@@ -24,7 +24,6 @@ const biznesNavItems = [
   { path: "/debtors", label: "Qarz oluvchilar", icon: FileText },
   { path: "/reports", label: "Hisobotlar", icon: BarChart3 },
   { path: "/payments", label: "To'lovlar", icon: CreditCard },
-  { path: "/tariffs", label: "Tarif rejalar", icon: Tag },
 ];
 
 const AdminLayout = ({ children }: { children: React.ReactNode }) => {
