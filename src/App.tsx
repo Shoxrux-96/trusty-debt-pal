@@ -8,6 +8,7 @@ import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
 import Dashboard from "./pages/Dashboard";
 import OwnerDashboard from "./pages/OwnerDashboard";
+import OwnerUsers from "./pages/OwnerUsers";
 import Debtors from "./pages/Debtors";
 import Reports from "./pages/Reports";
 import Payments from "./pages/Payments";
@@ -40,6 +41,7 @@ const App = () => (
             <Route path="/login" element={<Login />} />
             {/* Owner routes */}
             <Route path="/owner-dashboard" element={<ProtectedRoute ownerOnly><OwnerDashboard /></ProtectedRoute>} />
+            <Route path="/owner-users" element={<ProtectedRoute ownerOnly><OwnerUsers /></ProtectedRoute>} />
             {/* Biznes egasi routes */}
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path="/debtors" element={<ProtectedRoute><Debtors /></ProtectedRoute>} />
